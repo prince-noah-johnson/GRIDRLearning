@@ -9,7 +9,7 @@ def direction(index):
     return actions[index] if index < 4 else actions[-1]
 
 
-def qlearning(q_table, worldId=0, mode='train', learning_rate=0.001, gamma=0.9, epsilon=0.9, good_term_states=[], bad_term_states=[], epoch=0, obstacles=[], run_num=0, verbose=True):
+def qlearning(q_table, worldId=0, learning_rate=0.001, gamma=0.9, epsilon=0.9, good_term_states=[], bad_term_states=[], epoch=0, obstacles=[], run_num=0, verbose=True):
     a = Requests.Requests(worldId=worldId)
     a.enter_world()
 
@@ -34,13 +34,10 @@ def qlearning(q_table, worldId=0, mode='train', learning_rate=0.001, gamma=0.9, 
         
         obstacles = [obs for obs in obstacles if obs not in visited]
 
-        if mode == 'train':
-            unexplored = np.where(q_table[location[0]][location[1]].astype(int) == 0)[0]
-            explored = np.where(q_table[location[0]][location[1]].astype(int) != 0)[0]
-            move_num = int(np.random.choice(unexplored)) if np.random.uniform() < epsilon else np.argmax(q_table[location[0]][location[1]])
-        else:
-            move_num = np.argmax(q_table[location[0]][location[1]])
-
+        unexplored = np.where(q_table[location[0]][location[1]].astype(int) == 0)[0]
+        explored = np.where(q_table[location[0]][location[1]].astype(int) != 0)[0]
+        move_num = int(np.random.choice(unexplored)) if np.random.uniform() < epsilon else np.argmax(q_table[location[0]][location[1]])
+       
         move_response = a.make_move(move=direction(move_num), worldId=str(worldId)) 
 
         if verbose:
@@ -57,8 +54,7 @@ def qlearning(q_table, worldId=0, mode='train', learning_rate=0.001, gamma=0.9, 
             expected_loc = (location[0] + (recent_move == "E") - (recent_move == "W"), location[1] + (recent_move == "N") - (recent_move == "S"))
             if verbose:
                 print(f"Current cell: {new_state}")
-            if mode == "train":
-                obstacles.append(expected_loc)
+            obstacles.append(expected_loc)
             visited.append(new_state)
             obstacles = [obs for obs in obstacles if obs not in visited]
         else:
@@ -67,8 +63,7 @@ def qlearning(q_table, worldId=0, mode='train', learning_rate=0.001, gamma=0.9, 
         reward = float(move_response["reward"])
         rewards_acquired.append(reward) 
 
-        if mode == "train":
-            q_table_modify(location, q_table, reward, gamma, new_state, learning_rate, move_num)
+        q_table_modify(location, q_table, reward, gamma, new_state, learning_rate, move_num)
         
         location = new_state
 
